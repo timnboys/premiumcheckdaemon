@@ -21,5 +21,5 @@ jobs:
           command: go build -o main cmd/premiumcheckdaemon/main.go
 
       - store_artifacts:
-          path: /go/src/github.com/TicketsBot/premiumcheckdaemon/main
+          path: /go/src/github.com/TicketsBot/whitelabelpremiumcheckdaemon/main
           destination: main
