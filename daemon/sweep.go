@@ -32,12 +32,19 @@ func (d *Daemon) sweep() {
 			}
 
 			if !hasWhitelabel {
+				// get bot ID
+				bot, err := d.db.Whitelabel.GetByUserId(userId)
+				if err != nil {
+					sentry.Error(err)
+					return
+				}
+
 				if err := d.db.Whitelabel.Delete(userId); err != nil {
 					sentry.Error(err)
 					return
 				}
 
-				whitelabeldelete.Publish(d.redis, userId)
+				whitelabeldelete.Publish(d.redis, bot.BotId)
 			}
 		}()
 	}
