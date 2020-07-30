@@ -44,7 +44,8 @@ func NewDaemon(db *database.Database, redis *redis.Client, premium *premium.Patr
 
 func (d *Daemon) Start() {
 	for {
-		d.sweep()
+		d.sweepWhitelabel()
+		d.sweepPanels()
 		time.Sleep(time.Hour * 6)
 	}
 }

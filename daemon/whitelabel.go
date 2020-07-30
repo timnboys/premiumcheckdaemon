@@ -7,7 +7,7 @@ import (
 	"github.com/TicketsBot/common/whitelabeldelete"
 )
 
-func (d *Daemon) sweep() {
+func (d *Daemon) sweepWhitelabel() {
 	query := `SELECT "user_id" FROM whitelabel;`
 	rows, err := d.db.Whitelabel.Query(context.Background(), query)
 	defer rows.Close()
@@ -69,4 +69,3 @@ func (d *Daemon) hasWhitelabel(userId uint64) (bool, error) {
 
 	return false, nil
 }
-
