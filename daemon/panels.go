@@ -33,8 +33,14 @@ func (d *Daemon) sweepPanels() {
 	batch := &pgx.Batch{}
 
 	for guildId, panelCount := range guilds {
+		// get guild owner
+		guild, success := d.cache.GetGuild(guildId, false)
+		if !success || guild.OwnerId == 0 { // if bot's been kicked doesn't matter, when we rejoin we'll purge
+			continue
+		}
+
 		// get tier from patreon
-		tier, err := d.patreon.GetTier(guildId)
+		tier, err := d.patreon.GetTier(guild.OwnerId)
 		if err != nil {
 			sentry.Error(err)
 			continue

@@ -22,7 +22,7 @@ func main() {
 		fmt.Println(err.Error())
 	}
 
-	daemon := daemon.NewDaemon(newDatabaseClient(), newRedisClient(), newPatreonClient())
+	daemon := daemon.NewDaemon(newDatabaseClient(), newCacheClient(), newRedisClient(), newPatreonClient())
 	daemon.Start()
 }
 
@@ -45,7 +45,7 @@ func newDatabaseClient() *database.Database {
 	return database.NewDatabase(pool)
 }
 
-func newCacheClient() cache.PgCache {
+func newCacheClient() *cache.PgCache {
 	connString := fmt.Sprintf(
 		"postgres://%s:%s@%s/%s?pool_max_conns=%S",
 		os.Getenv("CACHE_USER"),
@@ -61,7 +61,7 @@ func newCacheClient() cache.PgCache {
 		panic(err)
 	}
 
-	return cache.NewPgCache(pool, cache.CacheOptions{
+	client := cache.NewPgCache(pool, cache.CacheOptions{
 		Guilds:      true,
 		Users:       true,
 		Members:     true,
@@ -70,6 +70,8 @@ func newCacheClient() cache.PgCache {
 		Emojis:      true,
 		VoiceStates: true,
 	})
+
+	return &client
 }
 
 func newRedisClient() (client *redis.Client) {
