@@ -41,20 +41,18 @@ func (d *Daemon) sweepPanels() {
 
 		if tier < premium.Premium {
 			query := `
-WITH del AS (
-	SELECT
-		message_id
-	FROM
-		panels
-	WHERE
-		"guild_id" = $1
-	LIMIT
-		$2
-);
 DELETE FROM
 	panels
 WHERE
-	"message_id" = ANY(del)
+	"message_id" = ANY(ARRAY(	
+		SELECT
+			"message_id"
+		FROM
+			panels
+		WHERE
+			"guild_id" = $1
+		LIMIT $2
+	))
 ;
 `
 			batch.Queue(query, guildId, panelCount - 1)
