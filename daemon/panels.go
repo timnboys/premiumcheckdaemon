@@ -44,7 +44,7 @@ func (d *Daemon) sweepPanels() {
 DELETE FROM
 	panels
 WHERE
-	"message_id" = ANY(ARRAY(	
+	"message_id" IN (	
 		SELECT
 			"message_id"
 		FROM
@@ -52,7 +52,7 @@ WHERE
 		WHERE
 			"guild_id" = $1
 		LIMIT $2
-	))
+	)
 ;
 `
 			batch.Queue(query, guildId, panelCount - 1)
