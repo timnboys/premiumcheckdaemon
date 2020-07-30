@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"context"
+	"fmt"
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/common/sentry"
 	"github.com/jackc/pgx/v4"
@@ -27,6 +28,8 @@ func (d *Daemon) sweepPanels() {
 		guilds[guildId] = panelCount
 	}
 
+	fmt.Printf("Detected %d guilds with > 1 panel\n", len(guilds))
+
 	batch := &pgx.Batch{}
 
 	for guildId, panelCount := range guilds {
@@ -37,7 +40,24 @@ func (d *Daemon) sweepPanels() {
 		}
 
 		if tier < premium.Premium {
-			batch.Queue(`DELETE FROM panels WHERE "guild_id" = $1 LIMIT $2;`, guildId, panelCount - 1)
+			query := `
+WITH del AS (
+	SELECT
+		message_id
+	FROM
+		panels
+	WHERE
+		"guild_id" = $1
+	LIMIT
+		$2
+);
+DELETE FROM
+	panels
+WHERE
+	"message_id" = ANY(del)
+;
+`
+			batch.Queue(query, guildId, panelCount - 1)
 		}
 	}
 
