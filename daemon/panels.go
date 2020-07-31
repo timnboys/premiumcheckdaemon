@@ -56,7 +56,8 @@ func (d *Daemon) sweepPanels() {
 
 			if !hasKey {
 				fmt.Printf("guild %d is not patreon anymore! panel count: %d\n", guildId, panelCount)
-				/*query := `
+
+				query := `
 				DELETE FROM
 					panels
 				WHERE
@@ -71,7 +72,7 @@ func (d *Daemon) sweepPanels() {
 					)
 				;
 				`
-							batch.Queue(query, guildId, panelCount - 1)*/
+							batch.Queue(query, guildId, panelCount - 1)
 			}
 		}
 	}
