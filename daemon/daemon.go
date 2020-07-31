@@ -5,6 +5,7 @@ import (
 	"github.com/TicketsBot/common/sentry"
 	"github.com/TicketsBot/database"
 	"github.com/go-redis/redis"
+	"github.com/rxdn/gdl/cache"
 	"os"
 	"strconv"
 	"strings"
@@ -13,12 +14,13 @@ import (
 
 type Daemon struct {
 	db      *database.Database
+	cache   *cache.PgCache
 	redis   *redis.Client
-	premium *premium.PatreonClient
+	patreon *premium.PatreonClient
 	forced  []uint64
 }
 
-func NewDaemon(db *database.Database, redis *redis.Client, premium *premium.PatreonClient) *Daemon {
+func NewDaemon(db *database.Database, cache *cache.PgCache, redis *redis.Client, patreon *premium.PatreonClient) *Daemon {
 	var forced []uint64
 	for _, raw := range strings.Split(os.Getenv("FORCED"), ",") {
 		if raw == "" {
@@ -36,8 +38,9 @@ func NewDaemon(db *database.Database, redis *redis.Client, premium *premium.Patr
 
 	return &Daemon{
 		db:      db,
+		cache:   cache,
 		redis:   redis,
-		premium: premium,
+		patreon: patreon,
 		forced:  forced,
 	}
 }

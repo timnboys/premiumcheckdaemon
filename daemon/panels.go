@@ -33,29 +33,47 @@ func (d *Daemon) sweepPanels() {
 	batch := &pgx.Batch{}
 
 	for guildId, panelCount := range guilds {
-		tier, err := d.premium.GetTier(guildId)
+		// get guild owner
+		guild, success := d.cache.GetGuild(guildId, false)
+		if !success || guild.OwnerId == 0 { // if bot's been kicked doesn't matter, when we rejoin we'll purge
+			continue
+		}
+
+		// get tier from patreon
+		tier, err := d.patreon.GetTier(guild.OwnerId)
 		if err != nil {
 			sentry.Error(err)
 			continue
 		}
 
 		if tier < premium.Premium {
-			query := `
-DELETE FROM
-	panels
-WHERE
-	"message_id" IN (	
-		SELECT
-			"message_id"
-		FROM
-			panels
-		WHERE
-			"guild_id" = $1
-		LIMIT $2
-	)
-;
-`
-			batch.Queue(query, guildId, panelCount - 1)
+			// if not premium on patreon, we should check for a premium key
+			hasKey, err := d.db.PremiumGuilds.IsPremium(guildId)
+			if err != nil {
+				sentry.Error(err)
+				continue
+			}
+
+			if !hasKey {
+				fmt.Printf("guild %d is not patreon anymore! panel count: %d\n", guildId, panelCount)
+
+				query := `
+				DELETE FROM
+					panels
+				WHERE
+					"message_id" IN (
+						SELECT
+							"message_id"
+						FROM
+							panels
+						WHERE
+							"guild_id" = $1
+						LIMIT $2
+					)
+				;
+				`
+							batch.Queue(query, guildId, panelCount - 1)
+			}
 		}
 	}
 
